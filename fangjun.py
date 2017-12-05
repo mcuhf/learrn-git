@@ -3,6 +3,9 @@ import time
 import sys
 import httplib, urllib
 import json
+import RPi.GPIO as GPIO
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(24,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
 sensor_args = { '11': Adafruit_DHT.DHT11,
                 '22': Adafruit_DHT.DHT22,
                 '2302': Adafruit_DHT.AM2302 }
@@ -26,11 +29,13 @@ def post_to_mcs(payload):
                 data = response.read()
                 conn.close()
 while True:
+	SwitchStatus=GPIO.input(24)
         humidity,temperature= Adafruit_DHT.read_retry(11, 4)
         if humidity is not None and temperature is not None:
                 print('Temp={0:0.1f}*  Humidity={1:0.1f}%'.format(temperature,humidity))
                 payload = {"datapoints":[{"dataChnId":"Humidity","values":{"value":humidity}},
-			  {"dataChnId":"Temperature","values":{"value":temperature}}]} 
+			  {"dataChnId":"Temperature","values":{"value":temperature}},
+			{"dataChnId":"SwitchStatus","values":{"value":SwitchStatus}}]}
                 post_to_mcs(payload)
                 time.sleep(30)
 
